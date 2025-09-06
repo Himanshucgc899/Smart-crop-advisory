@@ -15,43 +15,84 @@ data.head()
 
 print(data.shape)
 data['label'].unique()
+numeric_cols = [
+    "N",
+    "P",
+    "K",
+    "temperature",
+    "humidity",
+    "ph",
+    "rainfall",
+    "soil_moisture",
+    "soil_type",
+    "sunlight_exposure",
+    "wind_speed",
+    "co2_concentration",
+    "organic_matter",
+    "irrigation_frequency",
+    "crop_density",
+    "pest_pressure",
+    "fertilizer_usage",
+    "growth_stage",
+    "urban_area_proximity",
+    "water_source_type",
+    "frost_risk",
+    "water_usage_efficiency"
+    ]
 
-# 2. Features (X) and target (y)
-#features = ["N", "P", "K", "temperature", "humidity", "ph", "rainfall", "soil_type"]
+for col in numeric_cols:
+    if col in data.columns:
+        data[col] = pd.to_numeric(data[col], errors='coerce')
+
+# Drop rows with NaN
+data = data.dropna()
+
+# -----------------------------
+# 3️⃣ Features and target
+# -----------------------------
 X = data.drop("label", axis=1)
 y = data["label"]
 
-# 3. Encode crop labels
+# Encode categorical columns
+categorical_cols = [col for col in X.columns if X[col].dtype == 'object']
+label_encoders = {}
+for col in categorical_cols:
+    le = LabelEncoder()
+    X[col] = le.fit_transform(X[col])
+    label_encoders[col] = le
+
+# Encode target
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(y)
 
-# Encode soil type if exists
-if "soil_type" in data.columns:
-    le = LabelEncoder()
-    data["soil_type"] = le.fit_transform(data["soil_type"])
-
-    # Save encoder with pickle
-    with open("soil_encoder.pkl", "wb") as f:
-        pickle.dump(le, f)
-
-# 4. Train-Test Split
+# -----------------------------
+# 4️⃣ Train-Test Split
+# -----------------------------
 X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
 
-# 5. Feature Scaling
+# -----------------------------
+# 5️⃣ Feature Scaling
+# -----------------------------
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# 6. Train model (Random Forest)
+# -----------------------------
+# 6️⃣ Train Random Forest Model
+# -----------------------------
 model = RandomForestClassifier(n_estimators=200, random_state=42)
 model.fit(X_train, y_train)
 
-# 7. Evaluate
+# -----------------------------
+# 7️⃣ Evaluate
+# -----------------------------
 y_pred = model.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
 
-# 8. Save model, scaler, and label encoder
+# -----------------------------
+# 8️⃣ Save artifacts
+# -----------------------------
 with open("crop_model.pkl", "wb") as f:
     pickle.dump(model, f)
 
@@ -61,5 +102,10 @@ with open("scaler.pkl", "wb") as f:
 with open("label_encoder.pkl", "wb") as f:
     pickle.dump(label_encoder, f)
 
-print("✅ Model, Scaler, and Label Encoder saved successfully!")
+# Save individual categorical encoders (e.g., soil_type)
+for col, le in label_encoders.items():
+    filename = f"{col}_encoder.pkl"
+    with open(filename, "wb") as f:
+        pickle.dump(le, f)
 
+print("✅ Model, Scaler, and Encoders saved successfully!")

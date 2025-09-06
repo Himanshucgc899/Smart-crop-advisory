@@ -27,7 +27,7 @@ FEATURES = [
     "co2_concentration",
     "organic_matter",
     "irrigation_frequency",
-    "crop_density";
+    "crop_density",
     "pest_pressure",
     "fertilizer_usage",
     "growth_stage",

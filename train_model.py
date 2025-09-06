@@ -9,7 +9,7 @@ import pickle
 
 
 # 1. Load dataset
-data = pd.read_csv("Crop_recommendationV2.csv")
+data = pd.read_csv(r"C:\Users\himan\OneDrive\Documents\Desktop\SIH2025\Crop_recommendationV2.csv")
 data.head()
 
 
